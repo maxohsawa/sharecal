@@ -1,14 +1,14 @@
-import { useState } from 'react'
-
+// import box from chakra
+import { Box, Heading } from "@chakra-ui/react";
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <h1>ShareCal</h1>
-    </>
-  )
+	return (
+		<>
+			<Box>
+				<Heading>ShareCal</Heading>
+			</Box>
+		</>
+	);
 }
 
-export default App
+export default App;
