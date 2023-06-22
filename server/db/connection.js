@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-mongoose.connect(process.env.MONGODB_ATLAS_URI || 'mongodb://127.0.0.1:27017/sharecal');
+mongoose.connect(process.env.MONGODB_ATLAS_URI || "mongodb://127.0.0.1:27017/sharecal");
 
 module.exports = mongoose.connection;
