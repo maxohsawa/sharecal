@@ -1,4 +1,3 @@
-// import box from chakra
 import { Box, Heading } from "@chakra-ui/react";
 
 function App() {
