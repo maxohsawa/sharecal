@@ -65,9 +65,6 @@ function Login() {
 						color: "brand.300",
 						borderColor: "brand.200"
 					}}
-					_focus={{
-						borderColor: "brand.300"
-					}}
                 >
                     Log In
                 </Button>
