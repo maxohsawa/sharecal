@@ -11,7 +11,7 @@ function SignUp() {
 	let confirmError = confirmInput === '';
 	let emailMessage = (emailError ? "Email is required" : "");
 	let passwordMessage = (passwordError ? "Password is required" : "");
-	let confirmMessage = (passwordError ? "Confirmation is required" : "");
+	let confirmMessage = (confirmError ? "Confirmation is required" : "");
 
 	const signIn = () => {
 		if (emailInput === ' ') {
