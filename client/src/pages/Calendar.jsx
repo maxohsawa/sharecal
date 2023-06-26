@@ -16,6 +16,7 @@ import { Box, Heading, useDisclosure } from "@chakra-ui/react";
 import { handleDateClick, handleEventClick } from "../utils/calendarHandlers";
 
 // import components
+import Header from '../components/Header';
 import EventPopUp from '../components/EventPopUp';
 import EditModal from '../components/EditModal';
 
@@ -23,11 +24,6 @@ import EditModal from '../components/EditModal';
   // https://fullcalendar.io/docs/react
 // additional calendar plugins
   // https://fullcalendar.io/docs/plugin-index
-
-const wrapperStyle = {
-  width: "90vw",
-  height: "90vw"
-}
 
 function Calendar() {
 
@@ -51,14 +47,23 @@ function Calendar() {
   ];
 
 	return (
-		<>
-			<Box>
-				<Heading>Calendar</Heading>
-        
-        <Box
-          style={wrapperStyle}
-        >
-
+    <>
+			<Box
+				w="100vw"
+				h="100vh"
+				bgColor="gray.200"
+				display="flex"
+				flexDirection="column"
+				alignItems="center"
+			>
+				<Header />
+				<Heading
+					my={5}
+				>
+					Calendar
+				</Heading>
+   
+        <Box w="100%" h="100%">
           <FullCalendar
             plugins={[ dayGridPlugin, interactionPlugin ]}
             initialView="dayGridMonth"
@@ -68,13 +73,16 @@ function Calendar() {
           />
 
           {eventClicked && <EventPopUp data={eventPopUpData} />}
+      
+          <EditModal 
+            isOpen={isOpen}
+            onOpen={onOpen}
+            onClose={onClose}
+          />
         </Box>
-        <EditModal 
-          isOpen={isOpen}
-          onOpen={onOpen}
-          onClose={onClose}
-        />
 
+				
+			
 			</Box>
 		</>
 	);
