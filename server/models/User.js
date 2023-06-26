@@ -8,6 +8,10 @@ const userSchema = new Schema({
 		unique: true,
 		match: [/.+@.+\..+/, "Must match an email address!"],
 	},
+	name: {
+		type: String,
+		required: true,
+	},
 	password: {
 		type: String,
 		required: true,
@@ -88,6 +92,24 @@ userSchema.pre("save", async function (next) {
 		const saltRounds = 10;
 		try {
 			this.password = await bcrypt.hash(this.password, saltRounds);
+		} catch (err) {
+			console.log(err);
+		}
+	}
+	next();
+});
+
+userSchema.pre("findOneAndUpdate", async function (next) {
+	const update = this.getUpdate();
+	if (update.email) {
+		update.email = update.email.toLowerCase();
+	}
+
+	if (update.password) {
+		const saltRounds = 10;
+		try {
+			const hashedPassword = await bcrypt.hash(update.password, saltRounds);
+			this.setUpdate({ ...update, password: hashedPassword });
 		} catch (err) {
 			console.log(err);
 		}
