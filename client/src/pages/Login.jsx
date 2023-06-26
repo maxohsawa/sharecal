@@ -1,5 +1,6 @@
 import { Box, Heading, FormControl, FormLabel, Input, Button, Text } from "@chakra-ui/react";
 import { useState } from "react";
+import Header from "../components/Header.jsx";
 
 function Login() {
 
@@ -39,9 +40,13 @@ function Login() {
 				display="flex"
 				flexDirection="column"
 				alignItems="center"
-				p={5}
 			>
-				<Heading>ShareCal Login</Heading>
+				<Header />
+				<Heading
+					my={5}
+				>
+					Login
+				</Heading>
 				<FormControl
 					bgColor="white"
 					w="50%"
