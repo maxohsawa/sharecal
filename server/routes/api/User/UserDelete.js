@@ -6,8 +6,7 @@ const { User } = require("../../../models");
 // /api/user/delete/:id
 router.delete("/:id", async (req, res) => {
 	try {
-		const { confirmationEmail } = req.body;
-		confirmationEmail.toLowerCase();
+		const { confirmationPassword } = req.body;
 
 		const user = await User.findById(req.params.id);
 
@@ -15,13 +14,17 @@ router.delete("/:id", async (req, res) => {
 			return res.status(404).send("User not found.");
 		}
 
-		if (user.email === confirmationEmail) {
-			await User.findByIdAndDelete(req.params.id);
-			res.status(200).json({ message: `Account for ${user.name} deleted!` });
-		} else {
-			res.status(400).send("Confirmation email does not match user record.");
+		const verification = await user.isCorrectPassword(confirmationPassword);
+
+		if (!verification) {
+			return res.status(400).send("Password does not match user record.");
 		}
+
+		const deletedUser = await User.findByIdAndDelete(req.params.id);
+		res.status(200).json({ message: `Account for ${deletedUser.name} deleted!` });
 	} catch (err) {
 		res.status(400).json(err);
 	}
 });
+
+module.exports = router;

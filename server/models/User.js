@@ -99,6 +99,24 @@ userSchema.pre("save", async function (next) {
 	next();
 });
 
+userSchema.pre("findOneAndUpdate", async function (next) {
+	const update = this.getUpdate();
+	if (update.email) {
+		update.email = update.email.toLowerCase();
+	}
+
+	if (update.password) {
+		const saltRounds = 10;
+		try {
+			const hashedPassword = await bcrypt.hash(update.password, saltRounds);
+			this.setUpdate({ ...update, password: hashedPassword });
+		} catch (err) {
+			console.log(err);
+		}
+	}
+	next();
+});
+
 userSchema.methods.isCorrectPassword = async function (password) {
 	try {
 		return await bcrypt.compare(password, this.password);

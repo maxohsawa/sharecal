@@ -7,9 +7,15 @@ const { User } = require("../../../models");
 router.post("/create", async (req, res) => {
 	try {
 		const { name, email, password } = req.body;
+
 		const user = await User.create({ name, email, password });
-		res.status(200).json({ message: `Account for ${name} created!` });
+		res.status(200).json({ message: `Account for ${name} created!`, user });
 	} catch (err) {
+		if (err.code === 11000 && err.keyPattern && err.keyValue) {
+			// Duplicate key error for email field
+			const { email } = err.keyValue;
+			return res.status(400).json({ error: `Email '${email}' is already in use.` });
+		}
 		res.status(400).json(err);
 	}
 });
@@ -18,22 +24,26 @@ router.post("/create", async (req, res) => {
 // /api/user/post/login
 router.post("/login", async (req, res) => {
 	try {
-		const { email, password } = req.body;
-		email.toLowercase();
+		let { email, password } = req.body;
+		email = email.toLowerCase();
 		const user = await User.findOne({ email });
 
 		if (!user) {
-			res.status(400).send("Email not found.");
+			return res.status(400).send("Email not found.");
 		}
 
 		const verified = await user.isCorrectPassword(password);
 
 		if (!verified) {
-			res.status(400).send("Password does not match.");
+			return res.status(400).send("Password does not match.");
 		}
+
+		// add JWT here
 
 		res.json({ message: "Login successful!" });
 	} catch (err) {
 		res.status(400).json(err);
 	}
 });
+
+module.exports = router;

@@ -12,6 +12,17 @@ router.get("/:id", async (req, res) => {
 	}
 });
 
+// Get all Users route
+// /api/user/get/
+router.get("/", async (req, res) => {
+	try {
+		const users = await User.find({});
+		res.json(users);
+	} catch (err) {
+		res.status(400).json(err);
+	}
+});
+
 // Get users who subscribe to a particular calendar
 // Get users by Calendar ID in owned_calendars, accepted_calendars, or admin_calendars fields
 // (/api/user/get/calendar/:id)
@@ -62,3 +73,5 @@ router.get("/event/declined/:id", async (req, res) => {
 		res.status(400).json(err);
 	}
 });
+
+module.exports = router;
