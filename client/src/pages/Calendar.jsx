@@ -72,7 +72,7 @@ function Calendar() {
             eventClick={(info) => handleEventClick(info, ...eventClickData)}
           />
 
-          {eventClicked && <EventPopUp data={eventPopUpData} />}
+          {eventClicked && <EventPopUp data={eventPopUpData} onOpen={onOpen} />}
       
           <EditModal 
             isOpen={isOpen}
