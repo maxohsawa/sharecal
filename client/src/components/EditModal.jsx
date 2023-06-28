@@ -30,7 +30,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
     else setFormState({...formState, [name]: value});
   }
 
-  const handleSaveClick = (event) => {
+  const handleSaveClick = () => {
    
     const oldEvent = events.filter((event) => event.id === eventInfo.event.id)[0];
     
@@ -43,6 +43,14 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
       ...events.filter((event) => event.id !== newEvent.id),
       newEvent
     ])
+  }
+
+  const handleDeleteClick = () => {
+
+    setEvents([
+      ...events.filter((event) => event.id !== eventInfo.event.id)
+    ]);
+    onClose();
   }
 
   return (
@@ -119,14 +127,19 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
             <Button 
               colorScheme='blue' 
               mr={3} 
-              onClick={(event) => {
-                handleSaveClick(event);
-                onClose(event);
+              onClick={() => {
+                handleSaveClick();
+                onClose();
               }}
             >
               Save
             </Button>
-            <Button colorScheme='red'>Delete</Button>
+            <Button 
+              colorScheme='red'
+              onClick={handleDeleteClick}
+            >
+              Delete
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
