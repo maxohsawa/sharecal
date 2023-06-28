@@ -5,7 +5,7 @@ export const handleDateClick = ({ args, events, setEvents }) => {
   
   const newEvent = {
     id: uuidv4(),
-    allDay: true,
+    allDay: args.allDay,
     start: undefined,
     end: undefined,
     startStr: null,

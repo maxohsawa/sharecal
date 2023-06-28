@@ -18,13 +18,14 @@ import {
 } from '@chakra-ui/react';
 
 // dateHelpers
-import { convertToISO } from '../utils/dateHelpers';
+import { convertToHTMLDate, convertHTMLDateAndTimeToISO, convertISOToTime } from '../utils/dateHelpers';
 
 const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) => {
   
   const [ allDay, setAllDay ] = useState(true);
   const [ formState, setFormState ] = useState({});
 
+  // when the modal is opened, the eventInfo that's coming from fullcalendar.io is transferred to the formState
   useEffect(() => {
     if (!eventInfo) return;
     console.log('eventInfo', eventInfo);
@@ -34,25 +35,36 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
       title: event.title,
       description: event.extendedProps.description,
       allDay: event.allDay,
-      start: convertToISO(event.start),
-      end: convertToISO(event.end)
+      start: convertToHTMLDate(event.start),
+      end: event.end ? convertToHTMLDate(event.end) : convertToHTMLDate(event.start),
+      startTime: convertISOToTime(event.startStr),
+      endTime: convertISOToTime(event.endStr)
     })
   }, [isOpen])
 
   const handleOnChange = (event) => {
     const { name, value } = event.target;
-    if (event.target.id === "allDayCheck") setFormState({...formState, [name]: event.target.checked})
-    else setFormState({...formState, [name]: value});
+    if (event.target.name === 'allDay') {
+      setFormState({...formState, [name]: event.target.checked});
+    } else {
+      setFormState({...formState, [name]: value});
+    }
   }
 
   const handleSaveClick = () => {
    
     const oldEvent = events.filter((event) => event.id === eventInfo.event.id)[0];
+
+    console.log('oldEvent', oldEvent);
     
     const newEvent = {
       ...oldEvent,
-      ...formState
+      ...formState,
+      startStr: convertHTMLDateAndTimeToISO(formState.start, formState.startTime),
+      endStr: convertHTMLDateAndTimeToISO(formState.end, formState.endTime)
     }
+
+    console.log('newEvent', newEvent);
 
     setEvents([
       ...events.filter((event) => event.id !== newEvent.id),
@@ -100,7 +112,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
                 id="allDayCheck"
                 onChange={handleOnChange}
                 name="allDay"
-                checked={formState.allDay}
+                isChecked={formState.allDay}
               ></Checkbox>
             </FormControl>
             <FormControl >
@@ -117,7 +129,8 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
               <Input
                 type='time'
                 onChange={handleOnChange}
-                name="startStr"
+                name="startTime"
+                value={formState.startTime}
               />
             </FormControl>}
             <FormControl>
@@ -134,7 +147,8 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
               <Input
                 type='time'
                 onChange={handleOnChange}
-                name="endStr"
+                name="endTime"
+                value={formState.endTime}
               />
             </FormControl>}
           </ModalBody>
