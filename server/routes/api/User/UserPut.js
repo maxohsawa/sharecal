@@ -283,13 +283,12 @@ router.put("/calendar/owned-or-admin/:id", async (req, res) => {
 	}
 });
 
-// User route for if event is deleted
-// /api/user/put/event/deleted/:id
-router.put("/event/deleted/:id", async (req, res) => {
+// User route for if event is deleted, removing ID from all users' arrays.
+// /api/user/put/event/deleted/
+router.put("/event/deleted/", async (req, res) => {
 	try {
 		const { eventId } = req.body;
-		const updatedUser = await User.findByIdAndUpdate(
-			req.params.id,
+		const updatedUsers = await User.updateMany(
 			{
 				$pull: {
 					owned_events: eventId,
@@ -304,19 +303,19 @@ router.put("/event/deleted/:id", async (req, res) => {
 
 		res
 			.status(200)
-			.json({ message: `Event removed from ${updatedUser.name}'s events!`, updatedUser });
+			.json({ message: `Event removed from all users' events!`, updatedUsers });
 	} catch (err) {
 		res.status(400).json(err);
 	}
 });
 
-// User route for if calendar is deleted
-// /api/user/put/calendar/deleted/:id
-router.put("/calendar/deleted/:id", async (req, res) => {
+// User route for if calendar is deleted, removing ID from all users' arrays.
+// /api/user/put/calendar/deleted/
+router.put("/calendar/deleted/", async (req, res) => {
 	try {
 		const { calendarId } = req.body;
-		const updatedUser = await User.findByIdAndUpdate(
-			req.params.id,
+		await User.updateMany(
+			{},
 			{
 				$pull: {
 					owned_calendars: calendarId,
@@ -328,9 +327,11 @@ router.put("/calendar/deleted/:id", async (req, res) => {
 			{ new: true }
 		);
 
+		const updatedUsers = await User.find({});
+
 		res.status(200).json({
-			message: `Calendar removed from ${updatedUser.name}'s events!`,
-			updatedUser,
+			message: `Calendar removed from users' calendars!`,
+			updatedUsers,
 		});
 	} catch (err) {
 		res.status(400).json(err);
