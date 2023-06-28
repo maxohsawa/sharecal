@@ -32,7 +32,8 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
       ...formState,
       title: event.title,
       description: event.extendedProps.description,
-      start: convertToISO(event.start)
+      start: convertToISO(event.start),
+      end: convertToISO(event.end)
     })
   }, [isOpen])
 
@@ -126,6 +127,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
                 type='date'
                 onChange={handleOnChange}
                 name="end"
+                value={formState.end}
               />
             </FormControl>
             {!allDay && <FormControl>
