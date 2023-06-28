@@ -1,6 +1,4 @@
-import {
-  useState
-} from 'react';
+import { useState, useEffect } from 'react';
 
 import {
   Button,
@@ -23,6 +21,15 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
   
   const [ allDay, setAllDay ] = useState(true);
   const [ formState, setFormState ] = useState({});
+
+  useEffect(() => {
+    if (!eventInfo) return;
+    const { event } = eventInfo;
+    setFormState({
+      ...formState,
+      title: event.title
+    })
+  }, [isOpen])
 
   const handleOnChange = (event) => {
     const { name, value } = event.target;
@@ -67,6 +74,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
                 type='text'
                 onChange={handleOnChange}
                 name="title"
+                value={formState.title}
               />
             </FormControl>
             <FormControl>
@@ -75,6 +83,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
                 type='text'
                 onChange={handleOnChange}
                 name="description"
+                value={formState.description}
               />
             </FormControl>
             <FormControl>

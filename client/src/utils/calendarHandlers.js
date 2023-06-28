@@ -11,6 +11,7 @@ export const handleDateClick = ({ args, events, setEvents }) => {
     startStr: null,
     endStr: null,
     title: 'New Event',
+    description: '',
     date: args.dateStr
   }
   
