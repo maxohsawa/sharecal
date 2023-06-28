@@ -17,6 +17,9 @@ import {
   ModalCloseButton
 } from '@chakra-ui/react';
 
+// dateHelpers
+import { convertToISO } from '../utils/dateHelpers';
+
 const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) => {
   
   const [ allDay, setAllDay ] = useState(true);
@@ -27,7 +30,9 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
     const { event } = eventInfo;
     setFormState({
       ...formState,
-      title: event.title
+      title: event.title,
+      description: event.extendedProps.description,
+      start: convertToISO(event.start)
     })
   }, [isOpen])
 
@@ -104,6 +109,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
                 type='date'
                 onChange={handleOnChange}
                 name="start"
+                value={formState.start}
               />
             </FormControl>
             {!allDay && <FormControl>
