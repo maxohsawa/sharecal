@@ -1,18 +1,28 @@
-// Month Date Year -> yyyy-mm-dd
+// -> yyyy-mm-dd
 export const convertToHTMLDate = (input) => {
   const dateObj = new Date(input);
-  return dateObj.toISOString().split('T')[0];
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth() + 1;
+  const date = dateObj.getDate();
+  console.log(date);
+  const output = [
+    year,
+    month > 9 ? month : '0' + month,
+    date > 9 ? date : '0' + date
+  ].join('-');
+  console.log('htmldate', output);
+  return output;
 }
 
-// yyyy-mm-ddThh:mm:ssZ -> hh:mm
-export const convertISOToTime = (input) => {
-  if (input.split('T').length === 1) return null;
-  const time = input.split('T')[1];
-  return time.split(':').slice(0, 2).join(':');
-}
-
-// yyyy-mm-dd, hh:mm -> yyyy-mm-ddThh:mm:00Z
-export const convertHTMLDateAndTimeToISO = (date, time) => {
-  if (!time) return date;
-  return `${date}T${time}:00Z`;
+// -> hh:mm
+export const convertToHTMLTime = (input) => {
+  const dateObj = new Date(input);
+  const hours = dateObj.getHours();
+  const minutes = dateObj.getMinutes();
+  const output = [
+    hours > 9 ? hours : '0' + hours,
+    minutes > 9 ? minutes : '0' + minutes
+  ].join(':');
+  console.log('htmltime', output);
+  return output;
 }

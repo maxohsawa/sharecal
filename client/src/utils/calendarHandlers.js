@@ -6,10 +6,8 @@ export const handleDateClick = ({ args, events, setEvents }) => {
   const newEvent = {
     id: uuidv4(),
     allDay: args.allDay,
-    start: undefined,
-    end: undefined,
-    startStr: null,
-    endStr: null,
+    start: args.dateStr,
+    end: args.dateStr,
     title: 'New Event',
     description: '',
     date: args.dateStr

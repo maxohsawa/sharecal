@@ -29,6 +29,10 @@ function Calendar() {
   const [ events, setEvents ] = useState([]);
   const [ eventInfo, setEventInfo ] = useState();
 
+  useEffect(() => {
+    console.log('events', events);
+  }, [events]);
+
   // chakra custom hook for modal
   const { isOpen, onOpen, onClose } = useDisclosure();
 

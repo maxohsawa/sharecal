@@ -18,11 +18,10 @@ import {
 } from '@chakra-ui/react';
 
 // dateHelpers
-import { convertToHTMLDate, convertHTMLDateAndTimeToISO, convertISOToTime } from '../utils/dateHelpers';
+import { convertToHTMLDate, convertToHTMLTime } from '../utils/dateHelpers';
 
 const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) => {
   
-  const [ allDay, setAllDay ] = useState(true);
   const [ formState, setFormState ] = useState({});
 
   // when the modal is opened, the eventInfo that's coming from fullcalendar.io is transferred to the formState
@@ -32,36 +31,37 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
     const { event } = eventInfo;
     setFormState({
       ...formState,
+      id: event.id,
       title: event.title,
       description: event.extendedProps.description,
       allDay: event.allDay,
-      start: convertToHTMLDate(event.start),
-      end: event.end ? convertToHTMLDate(event.end) : convertToHTMLDate(event.start),
-      startTime: convertISOToTime(event.startStr),
-      endTime: convertISOToTime(event.endStr)
+      startDate: convertToHTMLDate(event.start),
+      endDate: event.end ? convertToHTMLDate(event.end) : convertToHTMLDate(event.start),
+      startTime: convertToHTMLTime(event.start),
+      endTime: event.end ? convertToHTMLTime(event.end) : convertToHTMLTime(event.start)
+      
     })
   }, [isOpen])
 
   const handleOnChange = (event) => {
     const { name, value } = event.target;
     if (event.target.name === 'allDay') {
-      setFormState({...formState, [name]: event.target.checked});
+      console.log('allDay', event.target);
+      setFormState({...formState, allDay: !formState.allDay});
     } else {
       setFormState({...formState, [name]: value});
     }
   }
 
   const handleSaveClick = () => {
-   
-    const oldEvent = events.filter((event) => event.id === eventInfo.event.id)[0];
-
-    console.log('oldEvent', oldEvent);
     
     const newEvent = {
-      ...oldEvent,
-      ...formState,
-      startStr: convertHTMLDateAndTimeToISO(formState.start, formState.startTime),
-      endStr: convertHTMLDateAndTimeToISO(formState.end, formState.endTime)
+      id: formState.id,
+      title: formState.title,
+      description: formState.description,
+      allDay: formState.allDay,
+      start: [formState.startDate, formState.startTime].join(' '),
+      end: [formState.endDate, formState.endTime].join(' ')
     }
 
     console.log('newEvent', newEvent);
@@ -70,6 +70,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
       ...events.filter((event) => event.id !== newEvent.id),
       newEvent
     ])
+    onClose();
   }
 
   const handleDeleteClick = () => {
@@ -120,8 +121,8 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
               <Input 
                 type='date'
                 onChange={handleOnChange}
-                name="start"
-                value={formState.start}
+                name="startDate"
+                value={formState.startDate}
               />
             </FormControl>
             {!formState.allDay && <FormControl>
@@ -138,8 +139,8 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
               <Input
                 type='date'
                 onChange={handleOnChange}
-                name="end"
-                value={formState.end}
+                name="endDate"
+                value={formState.endDate}
               />
             </FormControl>
             {!formState.allDay && <FormControl>
