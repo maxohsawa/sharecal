@@ -27,11 +27,13 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
 
   useEffect(() => {
     if (!eventInfo) return;
+    console.log('eventInfo', eventInfo);
     const { event } = eventInfo;
     setFormState({
       ...formState,
       title: event.title,
       description: event.extendedProps.description,
+      allDay: event.allDay,
       start: convertToISO(event.start),
       end: convertToISO(event.end)
     })
@@ -96,12 +98,9 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
               <FormLabel>All day</FormLabel>
               <Checkbox
                 id="allDayCheck"
-                defaultChecked
-                onChange={(event) => {
-                  setAllDay(!allDay)
-                  handleOnChange(event);
-                }}
+                onChange={handleOnChange}
                 name="allDay"
+                checked={formState.allDay}
               ></Checkbox>
             </FormControl>
             <FormControl >
@@ -113,7 +112,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
                 value={formState.start}
               />
             </FormControl>
-            {!allDay && <FormControl>
+            {!formState.allDay && <FormControl>
               <FormLabel>Start Time</FormLabel>
               <Input
                 type='time'
@@ -130,7 +129,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
                 value={formState.end}
               />
             </FormControl>
-            {!allDay && <FormControl>
+            {!formState.allDay && <FormControl>
               <FormLabel>End Time</FormLabel>
               <Input
                 type='time'
