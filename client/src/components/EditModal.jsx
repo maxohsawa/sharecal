@@ -20,7 +20,7 @@ import {
 // dateHelpers
 import { convertToHTMLDate, convertToHTMLTime } from '../utils/dateHelpers';
 
-const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) => {
+const EditModal = ({ isOpen, onClose, events, setEvents, eventInfo }) => {
   
   const [ formState, setFormState ] = useState({});
 
@@ -86,7 +86,7 @@ const EditModal = ({ isOpen, onOpen, onClose, events, setEvents, eventInfo }) =>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Event Form</ModalHeader>
+          <ModalHeader>Edit Event</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl>
