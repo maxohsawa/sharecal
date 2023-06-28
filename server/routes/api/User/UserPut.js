@@ -115,10 +115,19 @@ router.put("/event/owned-or-admin/:id", async (req, res) => {
 		const eventTypes = {
 			owned: "owned_events",
 			admin: "admin_events",
+			nonAdmin: "nonAdmin_events",
 		};
 
 		if (!eventTypes[ownedStatus]) {
 			return res.status(400).send("Invalid event status.");
+		}
+
+		if (ownedStatus === "nonAdmin") {
+			// Remove the calendar from other arrays if it exists
+			const user = await User.findByIdAndUpdate(req.params.id, {
+				$pull: { admin_events: eventId },
+			});
+			return res.status(200).json({ message: "Admin status removed from event!", user });
 		}
 
 		// if the ownedStatus is owned, also add the event to the attending_events array
@@ -236,10 +245,21 @@ router.put("/calendar/owned-or-admin/:id", async (req, res) => {
 		const calendarTypes = {
 			owned: "owned_calendars",
 			admin: "admin_calendars",
+			nonAdmin: "nonAdmin_calendars",
 		};
 
 		if (!calendarTypes[ownedStatus]) {
 			return res.status(400).send("Invalid calendar status.");
+		}
+
+		if (ownedStatus === "nonAdmin") {
+			// Remove the calendar from other arrays if it exists
+			const user = await User.findByIdAndUpdate(req.params.id, {
+				$pull: { admin_calendars: calendarId },
+			});
+			return res
+				.status(200)
+				.json({ message: "Admin status removed from calendar!", user });
 		}
 
 		// if owned or admin, also add the calendar to the subscribed_calendars array
@@ -256,6 +276,60 @@ router.put("/calendar/owned-or-admin/:id", async (req, res) => {
 
 		res.status(200).json({
 			message: `Calendar added to ${updatedUser.name}'s ${ownedStatus} calendars!`,
+			updatedUser,
+		});
+	} catch (err) {
+		res.status(400).json(err);
+	}
+});
+
+// User route for if event is deleted
+// /api/user/put/event/deleted/:id
+router.put("/event/deleted/:id", async (req, res) => {
+	try {
+		const { eventId } = req.body;
+		const updatedUser = await User.findByIdAndUpdate(
+			req.params.id,
+			{
+				$pull: {
+					owned_events: eventId,
+					admin_events: eventId,
+					attending_events: eventId,
+					invited_events: eventId,
+					declined_events: eventId,
+				},
+			},
+			{ new: true }
+		);
+
+		res
+			.status(200)
+			.json({ message: `Event removed from ${updatedUser.name}'s events!`, updatedUser });
+	} catch (err) {
+		res.status(400).json(err);
+	}
+});
+
+// User route for if calendar is deleted
+// /api/user/put/calendar/deleted/:id
+router.put("/calendar/deleted/:id", async (req, res) => {
+	try {
+		const { calendarId } = req.body;
+		const updatedUser = await User.findByIdAndUpdate(
+			req.params.id,
+			{
+				$pull: {
+					owned_calendars: calendarId,
+					admin_calendars: calendarId,
+					subscribed_calendars: calendarId,
+					invited_calendars: calendarId,
+				},
+			},
+			{ new: true }
+		);
+
+		res.status(200).json({
+			message: `Calendar removed from ${updatedUser.name}'s events!`,
 			updatedUser,
 		});
 	} catch (err) {
