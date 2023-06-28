@@ -1,5 +1,5 @@
 // import react hooks
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // import libraries
 import { v4 as uuidv4} from 'uuid';
@@ -13,11 +13,10 @@ import interactionPlugin from "@fullcalendar/interaction" // needed for dayClick
 import { Box, Heading, useDisclosure } from "@chakra-ui/react";
 
 // import handlers
-import { handleDateClick, handleEventClick } from "../utils/calendarHandlers";
+import { handleDateClick } from "../utils/calendarHandlers";
 
 // import components
 import Header from '../components/Header';
-import EventPopUp from '../components/EventPopUp';
 import EditModal from '../components/EditModal';
 
 // fullcalendar.io react docs
@@ -27,24 +26,11 @@ import EditModal from '../components/EditModal';
 
 function Calendar() {
 
-  const [events, setEvents ] = useState(
-    [
-      { id: uuidv4(), title: 'test event 1', date: '2023-06-26' },
-      { id: uuidv4(), title: 'test event 2', date: '2023-06-27' }
-    ]
-  )
-
-  const [eventClicked, setEventClicked ] = useState(false);
-  const [eventPopUpData, setEventPopUpData ] = useState({});
+  const [ events, setEvents ] = useState([]);
+  const [ eventInfo, setEventInfo ] = useState();
 
   // chakra custom hook for modal
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const eventClickData = [
-    events, setEvents,
-    eventClicked, setEventClicked,
-    eventPopUpData, setEventPopUpData
-  ];
 
 	return (
     <>
@@ -68,16 +54,17 @@ function Calendar() {
             plugins={[ dayGridPlugin, interactionPlugin ]}
             initialView="dayGridMonth"
             events={events}
-            dateClick={(args) => handleDateClick(args, ...eventClickData)}
-            eventClick={(info) => handleEventClick(info, ...eventClickData)}
+            dateClick={(args) => handleDateClick({ args, events, setEvents })}
+            eventClick={(info) => { setEventInfo(info); onOpen(); }}
           />
-
-          {eventClicked && <EventPopUp data={eventPopUpData} onOpen={onOpen} />}
       
-          <EditModal 
+          <EditModal
             isOpen={isOpen}
             onOpen={onOpen}
             onClose={onClose}
+            events={events}
+            setEvents={setEvents}
+            eventInfo={eventInfo}
           />
         </Box>
 
