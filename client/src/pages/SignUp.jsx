@@ -4,15 +4,21 @@ import Header from "../components/Header.jsx";
 
 function SignUp() {
 
+	const [firstNameInput, setFirstNameInput] = useState(" ");
+	const [lastNameInput, setLastNameInput] = useState(" ");
 	const [emailInput, setEmailInput] = useState(" ");
     const [passwordInput, setPasswordInput] = useState(" ");
 	const [confirmInput, setConfirmInput] = useState(" ");
+	let firstNameError = firstNameInput === '';
+	let lastNameError = lastNameInput === '';
 	let emailError = emailInput === '';
 	let passwordError = passwordInput === '';
 	let confirmError = confirmInput === '';
 	let emailMessage = (emailError ? "Email is required" : "");
 	let passwordMessage = (passwordError ? "Password is required" : "");
 	let confirmMessage = (confirmError ? "Confirmation is required" : "");
+	let firstNameMessage = (firstNameError ? "First name is required" : "");
+	let lastNameMessage = (lastNameError ? "Last name is required" : "");
 
 	const signIn = () => {
 		if (emailInput === ' ') {
@@ -24,7 +30,15 @@ function SignUp() {
 		if (confirmInput === ' ') {
 			confirmError = true;
 		}
+		if (firstNameInput === ' ') {
+			firstNameError = true;
+		}
+		if (lastNameInput === ' ') {
+			lastNameError = true;
+		}
 		console.log("sign in attempt");
+		console.log("First Name: " + firstNameInput);
+		console.log("Last Name: " + lastNameInput);
 		console.log("Email: " + emailInput);
 		console.log("Password: " + passwordInput);
 		console.log("Password Confirmation: " + confirmInput);
@@ -41,6 +55,15 @@ function SignUp() {
 	const updateConfirm = (event) => {
 		setConfirmInput(event.currentTarget.value);
 	}
+
+	const updateFirstName = (event) => {
+		setFirstNameInput(event.currentTarget.value);
+	}
+
+	const updateLastName = (event) => {
+		setLastNameInput(event.currentTarget.value);
+	}
+
 
 	return (
 		<>
@@ -65,6 +88,12 @@ function SignUp() {
 					m={5}
 					borderRadius={5}
 				>
+					<FormLabel>First Name</FormLabel>
+                    <Input placeholder='First Name' onChange={updateFirstName} onBlur={updateFirstName} isInvalid={firstNameError}/>
+					<Text pb={3} color="red.600">{firstNameMessage}</Text>
+					<FormLabel>Last Name</FormLabel>
+                    <Input placeholder='Last Name' onChange={updateLastName} onBlur={updateLastName} isInvalid={lastNameError}/>
+					<Text pb={3} color="red.600">{lastNameMessage}</Text>
                     <FormLabel>Email</FormLabel>
                     <Input placeholder='Email' onChange={updateEmail} onBlur={updateEmail} isInvalid={emailError}/>
 					<Text pb={3} color="red.600">{emailMessage}</Text>
