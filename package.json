@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^8.2.0"
+    "@fullcalendar/interaction": "^6.1.8",
+    "concurrently": "^8.2.0",
+    "uuid": "^9.0.0"
   }
 }
