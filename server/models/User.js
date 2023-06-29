@@ -8,7 +8,11 @@ const userSchema = new Schema({
 		unique: true,
 		match: [/.+@.+\..+/, "Must match an email address!"],
 	},
-	name: {
+	first_name: {
+		type: String,
+		required: true,
+	},
+	last_name: {
 		type: String,
 		required: true,
 	},
@@ -37,7 +41,7 @@ const userSchema = new Schema({
 			ref: "Event",
 		},
 	],
-	accepted_events: [
+	attending_events: [
 		{
 			type: Schema.Types.ObjectId,
 			ref: "Event",
@@ -67,7 +71,7 @@ const userSchema = new Schema({
 			ref: "Calendar",
 		},
 	],
-	accepted_calendars: [
+	subscribed_calendars: [
 		{
 			type: Schema.Types.ObjectId,
 			ref: "Calendar",
