@@ -21,7 +21,7 @@ router.delete("/:id", async (req, res) => {
 		}
 
 		const deletedUser = await User.findByIdAndDelete(req.params.id);
-		res.status(200).json({ message: `Account for ${deletedUser.name} deleted!` });
+		res.status(200).json({ message: `Account for ${deletedUser.first_name} deleted!` });
 	} catch (err) {
 		res.status(400).json(err);
 	}

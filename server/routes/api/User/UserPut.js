@@ -7,12 +7,22 @@ const { estimatedDocumentCount } = require("../../../models/User");
 // /api/user/put/:id
 router.put("/:id", async (req, res) => {
 	try {
-		const { newName, newEmail, newPassword, confirmationNewPassword, existingPassword } =
-			req.body;
+		const {
+			newFirstName,
+			newLastName,
+			newEmail,
+			newPassword,
+			confirmationNewPassword,
+			existingPassword,
+		} = req.body;
 		let updatedField;
 
-		if (newName) {
-			updatedField = { name: newName };
+		if (newFirstName && newLastName) {
+			updatedField = { first_name: newFirstName, last_name: newLastName };
+		} else if (newFirstName) {
+			updatedField = { first_name: newFirstName };
+		} else if (newLastName) {
+			updatedField = { last_name: newLastName };
 		} else if (newEmail) {
 			updatedField = { email: newEmail };
 		} else if (newPassword) {
@@ -49,7 +59,7 @@ router.put("/:id", async (req, res) => {
 
 		res
 			.status(200)
-			.json({ message: `Account for ${updatedUser.name} updated!`, updatedUser });
+			.json({ message: `Account for ${updatedUser.first_name} updated!`, updatedUser });
 	} catch (err) {
 		return res.status(400).json(err);
 	}
@@ -93,7 +103,7 @@ router.put("/event/attending-status/:id", async (req, res) => {
 		});
 
 		res.status(200).json({
-			message: `Event added to ${updatedUser.name}'s ${attendingStatus} events!`,
+			message: `Event added to ${updatedUser.first_name}'s ${attendingStatus} events!`,
 			updatedUser,
 		});
 	} catch (err) {
@@ -144,7 +154,7 @@ router.put("/event/owned-or-admin/:id", async (req, res) => {
 		});
 
 		res.status(200).json({
-			message: `Event added to ${updatedUser.name}'s ${ownedStatus} events!`,
+			message: `Event added to ${updatedUser.first_name}'s ${ownedStatus} events!`,
 			updatedUser,
 		});
 	} catch (err) {
@@ -223,7 +233,7 @@ router.put("/calendar/subscribed-status/:id", async (req, res) => {
 		});
 
 		res.status(200).json({
-			message: `Calendar added to ${updatedUser.name}'s ${subscribedStatus} calendars!`,
+			message: `Calendar added to ${updatedUser.first_name}'s ${subscribedStatus} calendars!`,
 			updatedUser,
 		});
 	} catch (err) {
@@ -275,7 +285,7 @@ router.put("/calendar/owned-or-admin/:id", async (req, res) => {
 		});
 
 		res.status(200).json({
-			message: `Calendar added to ${updatedUser.name}'s ${ownedStatus} calendars!`,
+			message: `Calendar added to ${updatedUser.first_name}'s ${ownedStatus} calendars!`,
 			updatedUser,
 		});
 	} catch (err) {

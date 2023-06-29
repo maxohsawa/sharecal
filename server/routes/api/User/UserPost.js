@@ -6,10 +6,12 @@ const { User } = require("../../../models");
 // /api/user/post/create
 router.post("/create", async (req, res) => {
 	try {
-		const { name, email, password } = req.body;
+		const { first_name, last_name, email, password } = req.body;
 
-		const user = await User.create({ name, email, password });
-		res.status(200).json({ message: `Account for ${name} created!`, user });
+		const user = await User.create({ first_name, last_name, email, password });
+		res
+			.status(200)
+			.json({ message: `Account for ${first_name} ${last_name} created!`, user });
 	} catch (err) {
 		if (err.code === 11000 && err.keyPattern && err.keyValue) {
 			// Duplicate key error for email field
