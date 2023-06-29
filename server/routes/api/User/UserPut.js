@@ -15,17 +15,21 @@ router.put("/:id", async (req, res) => {
 			confirmationNewPassword,
 			existingPassword,
 		} = req.body;
-		let updatedField;
+		let updatedField = {};
 
-		if (newFirstName && newLastName) {
-			updatedField = { first_name: newFirstName, last_name: newLastName };
-		} else if (newFirstName) {
-			updatedField = { first_name: newFirstName };
-		} else if (newLastName) {
-			updatedField = { last_name: newLastName };
-		} else if (newEmail) {
-			updatedField = { email: newEmail };
-		} else if (newPassword) {
+		if (newFirstName) {
+			updatedField.first_name = newFirstName;
+		}
+
+		if (newLastName) {
+			updatedField.last_name = newLastName;
+		}
+
+		if (newEmail) {
+			updatedField.email = newEmail;
+		}
+
+		if (newPassword) {
 			// if resetting password, asks for existing password and new password typed twice
 			if (!existingPassword) {
 				return res.status(400).send("Please enter your existing password.");
@@ -44,9 +48,11 @@ router.put("/:id", async (req, res) => {
 				return res.status(400).send("New passwords don't match.");
 			}
 
-			updatedField = { password: newPassword };
-		} else {
-			res.status(400).send("No field to update.");
+			updatedField.password = newPassword;
+		}
+
+		if (Object.keys(updatedField).length === 0) {
+			return res.status(400).send("No updates provided.");
 		}
 
 		const updatedUser = await User.findByIdAndUpdate(req.params.id, updatedField, {
