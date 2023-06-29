@@ -75,7 +75,7 @@ router.put("/", auth, async (req, res) => {
 	}
 });
 
-// User portion that adds eventID to appropriate array and handles for checking if an event being added to attending, invited, or declined is already in another array and removes it from that array
+// User route that adds eventID to appropriate array and handles for checking if an event being added to attending, invited, or declined is already in another array and removes it from that array
 // /api/user/put/event/attending-status/
 router.put("/event/attending-status/", auth, async (req, res) => {
 	try {
@@ -232,7 +232,8 @@ router.put("/calendar/subscribed-status/:id", auth, async (req, res) => {
 
 		// Check if calendarId exists in either subscribed_calendars or invited_calendars arrays
 		const user = await User.findById(userId);
-		const { subscribed_calendars, invited_calendars, owned_calendars } = user;
+		const { subscribed_calendars, admin_calendars, invited_calendars, owned_calendars } =
+			user;
 
 		if (
 			subscribed_calendars.includes(calendarId) &&
@@ -241,8 +242,13 @@ router.put("/calendar/subscribed-status/:id", auth, async (req, res) => {
 			return res.status(200).send("Already subscribed to calendar!");
 		} else if (invited_calendars.includes(calendarId) && subscribedStatus === "invited") {
 			return res.status(200).send("Already invited to calendar!");
-		} else if (owned_calendars.includes(calendarId)) {
-			return res.status(200).send("Cannot change subscription to owned calendar!");
+		} else if (
+			owned_calendars.includes(calendarId) ||
+			admin_calendars.includes(calendarId)
+		) {
+			return res
+				.status(200)
+				.send("Cannot change subscription to owned or admin-ed calendar!");
 		} else if (subscribedStatus === "unsubscribed") {
 			// Remove the calendar from other arrays if it exists
 			const updatedUser = await User.findByIdAndUpdate(
@@ -252,7 +258,6 @@ router.put("/calendar/subscribed-status/:id", auth, async (req, res) => {
 					$pull: {
 						subscribed_calendars: calendarId,
 						invited_calendars: calendarId,
-						admin_calendars: calendarId,
 					},
 				},
 				{
@@ -360,7 +365,7 @@ router.put("/calendar/admin/:id", auth, async (req, res) => {
 		const updatedUser = await User.findByIdAndUpdate(
 			targetUserId,
 			{
-				$addToSet: { admin_calendars: calendarId },
+				$addToSet: { admin_calendars: calendarId, subscribed_calendars: calendarId },
 			},
 			{
 				new: true,
