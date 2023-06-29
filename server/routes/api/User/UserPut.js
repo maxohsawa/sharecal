@@ -1,11 +1,11 @@
 const router = require("express").Router();
 const { User } = require("../../../models");
-const { estimatedDocumentCount } = require("../../../models/User");
+const { auth } = require("../../../utils/auth");
 
 // Update User name, email, or password, usable route for all three separate update functions.
 // Would require the update requests to be sent indivdually, not designed for multiple updates at once.
-// /api/user/put/:id
-router.put("/:id", async (req, res) => {
+// /api/user/put/
+router.put("/", auth, async (req, res) => {
 	try {
 		const {
 			newFirstName,
@@ -16,6 +16,8 @@ router.put("/:id", async (req, res) => {
 			existingPassword,
 		} = req.body;
 		let updatedField = {};
+
+		const userId = req.user._id;
 
 		if (newFirstName) {
 			updatedField.first_name = newFirstName;
@@ -34,9 +36,11 @@ router.put("/:id", async (req, res) => {
 			if (!existingPassword) {
 				return res.status(400).send("Please enter your existing password.");
 			}
-			const user = await User.findById(req.params.id);
+
+			const user = await User.findById(userId);
 			// confirmation that existing password is correct
 			const verified = await user.isCorrectPassword(existingPassword);
+
 			if (!verified) {
 				return res
 					.status(400)
@@ -55,7 +59,7 @@ router.put("/:id", async (req, res) => {
 			return res.status(400).send("No updates provided.");
 		}
 
-		const updatedUser = await User.findByIdAndUpdate(req.params.id, updatedField, {
+		const updatedUser = await User.findByIdAndUpdate(userId, updatedField, {
 			new: true,
 		});
 
@@ -72,10 +76,11 @@ router.put("/:id", async (req, res) => {
 });
 
 // User portion that adds eventID to appropriate array and handles for checking if an event being added to attending, invited, or declined is already in another array and removes it from that array
-// /api/user/put/event/attending-status/:id
-router.put("/event/attending-status/:id", async (req, res) => {
+// /api/user/put/event/attending-status/
+router.put("/event/attending-status/", auth, async (req, res) => {
 	try {
 		const { eventId, attendingStatus } = req.body;
+		const userId = req.user._id;
 
 		if (!eventId) {
 			return res.status(400).send("No event ID provided.");
@@ -104,7 +109,7 @@ router.put("/event/attending-status/:id", async (req, res) => {
 			}
 		}
 
-		const updatedUser = await User.findByIdAndUpdate(req.params.id, updateQuery, {
+		const updatedUser = await User.findByIdAndUpdate(userId, updateQuery, {
 			new: true,
 		});
 
@@ -117,50 +122,85 @@ router.put("/event/attending-status/:id", async (req, res) => {
 	}
 });
 
-// User route for creating an event or becoming admin of an event
 // Both admin and owned would be allowed to edit event details, but owned is the original owner
-// /api/user/put/event/owned-or-admin/:id
-router.put("/event/owned-or-admin/:id", async (req, res) => {
-	try {
-		const { eventId, ownedStatus } = req.body;
+// No current system for changing ownership of an event
 
-		if (!eventId) {
+// User route for when a new event is created, adding it to their owned events and attending events
+// /api/user/put/event/create
+router.put("/event/create", auth, async (req, res) => {
+	try {
+		const { newEventId } = req.body;
+		const userId = req.user._id;
+
+		if (!newEventId) {
 			return res.status(400).send("No event ID provided.");
 		}
 
-		const eventTypes = {
-			owned: "owned_events",
-			admin: "admin_events",
-			nonAdmin: "nonAdmin_events",
-		};
-
-		if (!eventTypes[ownedStatus]) {
-			return res.status(400).send("Invalid event status.");
-		}
-
-		if (ownedStatus === "nonAdmin") {
-			// Remove the calendar from other arrays if it exists
-			const user = await User.findByIdAndUpdate(req.params.id, {
-				$pull: { admin_events: eventId },
-			});
-			return res.status(200).json({ message: "Admin status removed from event!", user });
-		}
-
-		// if the ownedStatus is owned, also add the event to the attending_events array
-		const updateQuery = {
-			$addToSet: { [eventTypes[ownedStatus]]: eventId },
-		};
-
-		if (ownedStatus === "owned") {
-			updateQuery.$addToSet["attending_events"] = eventId;
-		}
-
-		const updatedUser = await User.findByIdAndUpdate(req.params.id, updateQuery, {
-			new: true,
+		const updatedUser = await User.findByIdAndUpdate(userId, {
+			$addToSet: { owned_events: newEventId, attending_events: eventId },
 		});
 
 		res.status(200).json({
-			message: `Event added to ${updatedUser.first_name}'s ${ownedStatus} events!`,
+			message: `Event added to ${updatedUser.first_name}'s owned and attending events!`,
+			updatedUser,
+		});
+	} catch (err) {
+		res.status(400).json(err);
+	}
+});
+
+// User route for adding or removing an admin from an event, if authorized
+// /api/user/put/event/admin/:id
+router.put("/event/admin/:id", auth, async (req, res) => {
+	try {
+		const { eventId, adminStatus } = req.body;
+		const authUserId = req.user._id;
+		const targetUserId = req.params.id;
+		const eventTypes = {
+			admin: "admin_events",
+			nonAdmin: "non_admin_events",
+		};
+
+		const authUser = await User.findById(authUserId);
+
+		if (
+			!authUser.owned_events.includes(eventId) ||
+			!authUser.admin_events.includes(eventId)
+		) {
+			return res
+				.status(400)
+				.send("User is not authorized to change admins for this event.");
+		}
+
+		if (!eventId || !targetUserId || !eventTypes[adminStatus]) {
+			return res
+				.status(400)
+				.send("Missing either eventId, targetUserId, or nonvalid event type provided.");
+		}
+
+		// if the adminStatus is nonAdmin, remove the event from the admin_events array
+		if (adminStatus === "nonAdmin") {
+			// Remove the calendar from other arrays if it exists
+			const updatedUser = await User.findByIdAndUpdate(targetUserId, {
+				$pull: { admin_events: eventId },
+			});
+			return res
+				.status(200)
+				.json({ message: "Admin status removed from event!", updatedUser });
+		}
+
+		const updatedUser = await User.findByIdAndUpdate(
+			targetUserId,
+			{
+				$addToSet: { admin_events: eventId },
+			},
+			{
+				new: true,
+			}
+		);
+
+		res.status(200).json({
+			message: `${updatedUser.first_name} added as event admin!`,
 			updatedUser,
 		});
 	} catch (err) {
@@ -169,10 +209,11 @@ router.put("/event/owned-or-admin/:id", async (req, res) => {
 });
 
 // User portion that adds calendarID to appropriate invited or subscribed array
-// /api/user/put/calendar/subscribed-status/:id
-router.put("/calendar/subscribed-status/:id", async (req, res) => {
+// /api/user/put/calendar/subscribed-status/
+router.put("/calendar/subscribed-status/:id", auth, async (req, res) => {
 	try {
 		const { calendarId, subscribedStatus } = req.body;
+		const userId = req.user._id;
 
 		if (!calendarId) {
 			return res.status(400).send("No calendar ID provided.");
@@ -190,7 +231,7 @@ router.put("/calendar/subscribed-status/:id", async (req, res) => {
 		}
 
 		// Check if calendarId exists in either subscribed_calendars or invited_calendars arrays
-		const user = await User.findById(req.params.id);
+		const user = await User.findById(userId);
 		const { subscribed_calendars, invited_calendars, owned_calendars } = user;
 
 		if (
@@ -205,7 +246,7 @@ router.put("/calendar/subscribed-status/:id", async (req, res) => {
 		} else if (subscribedStatus === "unsubscribed") {
 			// Remove the calendar from other arrays if it exists
 			const updatedUser = await User.findByIdAndUpdate(
-				req.params.id,
+				userId,
 				{
 					// pull from all arrays
 					$pull: {
@@ -234,7 +275,7 @@ router.put("/calendar/subscribed-status/:id", async (req, res) => {
 		}
 
 		// if the subscribedStatus is unsubscribed, also remove the calendar from all arrays and don't push the id anywhere
-		const updatedUser = await User.findByIdAndUpdate(req.params.id, updateQuery, {
+		const updatedUser = await User.findByIdAndUpdate(userId, updateQuery, {
 			new: true,
 		});
 
@@ -247,30 +288,68 @@ router.put("/calendar/subscribed-status/:id", async (req, res) => {
 	}
 });
 
-// User route for creating a calendar or becoming admin of a calendar
 // Both admin and owned would be allowed to edit calendar details, but owned is the original owner
-// /api/user/put/calendar/owned-or-admin/:id
-router.put("/calendar/owned-or-admin/:id", async (req, res) => {
-	try {
-		const { calendarId, ownedStatus } = req.body;
+// No current system for changing ownership of an event
 
-		if (!calendarId) {
-			return res.status(400).send("No event ID provided.");
+// User route for adding a calendar to owned calendars when it is created and subscribing to it
+// /api/user/put/calendar/create/
+router.put("/calendar/create/", auth, async (req, res) => {
+	try {
+		const { newCalendarId } = req.body;
+		const userId = req.user._id;
+
+		if (!newCalendarId) {
+			return res.status(400).send("No calendar ID provided.");
 		}
+
+		const updatedUser = await User.findByIdAndUpdate(userId, {
+			$addToSet: { owned_calendars: newCalendarId, subscribed_calendars: newCalendarId },
+		});
+
+		res.status(200).json({
+			message: `Calendar added to ${updatedUser.first_name}'s owned and subscribed calendars!`,
+			updatedUser,
+		});
+	} catch (err) {
+		res.status(400).json(err);
+	}
+});
+
+// User route for adding or removing an admin from a calendar
+// /api/user/put/calendar/admin/:id
+router.put("/calendar/admin/:id", auth, async (req, res) => {
+	try {
+		const { calendarId, adminStatus } = req.body;
+		const authUserId = req.user._id;
+		const targetUserId = req.params.id;
 
 		const calendarTypes = {
-			owned: "owned_calendars",
 			admin: "admin_calendars",
-			nonAdmin: "nonAdmin_calendars",
+			nonAdmin: "non_admin_calendars",
 		};
 
-		if (!calendarTypes[ownedStatus]) {
-			return res.status(400).send("Invalid calendar status.");
+		const authUser = await User.findById(authUserId);
+
+		if (
+			!authUser.admin_calendars.includes(calendarId) ||
+			!authUser.owned_calendars.includes(calendarId)
+		) {
+			return res
+				.status(400)
+				.send("User is not authorized to change admins for this calendar.");
 		}
 
-		if (ownedStatus === "nonAdmin") {
+		if (!calendarId || !targetUserId || !eventTypes[adminStatus]) {
+			return res
+				.status(400)
+				.send(
+					"Missing either calendarId, targetUserId, or nonvalid calendar type provided."
+				);
+		}
+
+		if (adminStatus === "nonAdmin") {
 			// Remove the calendar from other arrays if it exists
-			const user = await User.findByIdAndUpdate(req.params.id, {
+			const user = await User.findByIdAndUpdate(targetUserId, {
 				$pull: { admin_calendars: calendarId },
 			});
 			return res
@@ -278,20 +357,18 @@ router.put("/calendar/owned-or-admin/:id", async (req, res) => {
 				.json({ message: "Admin status removed from calendar!", user });
 		}
 
-		// if owned or admin, also add the calendar to the subscribed_calendars array
-		const updateQuery = {
-			$addToSet: {
-				[calendarTypes[ownedStatus]]: calendarId,
-				subscribed_calendars: calendarId,
+		const updatedUser = await User.findByIdAndUpdate(
+			targetUserId,
+			{
+				$addToSet: { admin_calendars: calendarId },
 			},
-		};
-
-		const updatedUser = await User.findByIdAndUpdate(req.params.id, updateQuery, {
-			new: true,
-		});
+			{
+				new: true,
+			}
+		);
 
 		res.status(200).json({
-			message: `Calendar added to ${updatedUser.first_name}'s ${ownedStatus} calendars!`,
+			message: `${updatedUser.first_name} added as calendar admin!`,
 			updatedUser,
 		});
 	} catch (err) {
@@ -301,9 +378,18 @@ router.put("/calendar/owned-or-admin/:id", async (req, res) => {
 
 // User route for if event is deleted, removing ID from all users' arrays.
 // /api/user/put/event/deleted/
-router.put("/event/deleted/", async (req, res) => {
+router.put("/event/deleted/", auth, async (req, res) => {
 	try {
 		const { eventId } = req.body;
+		const userId = req.user._id;
+
+		const user = await User.findById(userId);
+
+		if (!user.owned_events.includes(eventId) || !user.admin_events.includes(eventId)) {
+			return res
+				.send(400)
+				.json({ message: "You are not authorized to delete this event." });
+		}
 		const updatedUsers = await User.updateMany(
 			{
 				$pull: {
@@ -327,9 +413,22 @@ router.put("/event/deleted/", async (req, res) => {
 
 // User route for if calendar is deleted, removing ID from all users' arrays.
 // /api/user/put/calendar/deleted/
-router.put("/calendar/deleted/", async (req, res) => {
+router.put("/calendar/deleted/", auth, async (req, res) => {
 	try {
 		const { calendarId } = req.body;
+		const userId = req.user._id;
+
+		const user = await User.findById(userId);
+
+		if (
+			!user.owned_calendars.includes(eventId) ||
+			!user.admin_calendars.includes(eventId)
+		) {
+			return res
+				.send(400)
+				.json({ message: "You are not authorized to delete this calendar." });
+		}
+
 		await User.updateMany(
 			{},
 			{

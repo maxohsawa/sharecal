@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const { User } = require("../../../models");
+const { signToken, auth } = require("../../../utils/auth");
 
 // User create route
 // /api/user/post/create
@@ -9,9 +10,13 @@ router.post("/create", async (req, res) => {
 		const { first_name, last_name, email, password } = req.body;
 
 		const user = await User.create({ first_name, last_name, email, password });
+
+		// add JWT here
+		const token = signToken(user);
+
 		res
 			.status(200)
-			.json({ message: `Account for ${first_name} ${last_name} created!`, user });
+			.json({ message: `Account for ${first_name} ${last_name} created!`, user, token });
 	} catch (err) {
 		if (err.code === 11000 && err.keyPattern && err.keyValue) {
 			// Duplicate key error for email field
@@ -41,8 +46,9 @@ router.post("/login", async (req, res) => {
 		}
 
 		// add JWT here
+		const token = signToken(user);
 
-		res.json({ message: "Login successful!" });
+		res.json({ message: "Login successful!", token, user });
 	} catch (err) {
 		res.status(400).json(err);
 	}
