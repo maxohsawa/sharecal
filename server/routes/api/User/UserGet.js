@@ -15,7 +15,7 @@ router.get("/:id", async (req, res) => {
 
 // Get all Users route
 // /api/user/get/
-router.get("/", auth, async (req, res) => {
+router.get("/", async (req, res) => {
 	try {
 		const users = await User.find({});
 		res.json(users);
