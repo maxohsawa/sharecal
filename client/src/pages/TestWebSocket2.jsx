@@ -1,34 +1,32 @@
+import React, { useState, useCallback, useEffect } from "react";
+import useWebSocket from "react-use-websocket";
 import { Box, Input, Button } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
 
-function TestWebSocket() {
+function TestWebSocket2() {
+	const socketUrl = "ws://localhost:8080";
 	const [messages, setMessages] = useState([]);
 	const [input, setInput] = useState("");
-	const [connection, setConnection] = useState(false);
 
-	const socket = new WebSocket("ws://localhost:8080");
+	const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
-	socket.onopen = () => {
-		console.log("connected");
-		console.log(socket);
-		setConnection(true);
-	};
-
-	socket.onmessage = (event) => {
-		console.log(event.data);
-		setMessages([...messages, event.data]);
-	};
+	// console log onOpen
+	useEffect(() => {
+		if (readyState === 1) {
+			console.log("Client connected");
+		}
+	}, [readyState]);
 
 	const onClickHandler = () => {
 		setMessages([...messages, "Client: " + input]);
+		sendMessage(input + " from client");
+		setInput("");
 	};
 
 	useEffect(() => {
-		if (connection) {
-			socket.send(input);
-			setInput("");
+		if (lastMessage !== null) {
+			setMessages([...messages, lastMessage.data]);
 		}
-	}, [messages]);
+	}, [lastMessage, setMessages]);
 
 	return (
 		<>
@@ -49,4 +47,4 @@ function TestWebSocket() {
 	);
 }
 
-export default TestWebSocket;
+export default TestWebSocket2;

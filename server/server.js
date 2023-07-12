@@ -18,7 +18,7 @@ wss.on("connection", function connection(ws) {
 	// 	ws.send("Hello Client");
 	// });
 
-	// ws.send("Hello Client");
+	// ws.send("Hello Client unenclosed");
 });
 
 const db = require("./db/connection");
