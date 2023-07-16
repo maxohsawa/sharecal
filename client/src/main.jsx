@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import Calendar from "./pages/Calendar.jsx"
 import SignUp from "./pages/SignUp.jsx"
 import Login from "./pages/Login.jsx"
+import WebSocketTest from "./pages/WebSocketTest.jsx";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme from "./theme/theme.js";
 import "./index.css";
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
 	{
 		path: "/calendar",
 		element: <Calendar />,
+	},
+	{
+		path: "/websockettest",
+		element: <WebSocketTest />,
 	},
 ]);
 
